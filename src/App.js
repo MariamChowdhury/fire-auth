@@ -1,22 +1,68 @@
 import "./App.css";
-import firebase from 'firebase/app' 
+import firebase from "firebase/app";
 import "firebase/auth";
 import firebaseConfig from "./firebase.config";
+import { useState } from "react";
 firebase.initializeApp(firebaseConfig);
 function App() {
+  const [user, setUser] = useState({
+    isSignedIn: false,
+    name: "",
+    email: "",
+    photo: "",
+  });
   const provider = new firebase.auth.GoogleAuthProvider();
-  const handleClick =() => {
-    firebase.auth()
-  .signInWithPopup(provider)
-  .then(res => {
-   const {displayName,photoURL,phoneNumber}=res.user;
-   console.log(displayName,phoneNumber,photoURL)
-  })
-   
-  }
-  return <div className='App'>
-    <button onClick={handleClick} >Sign In</button>
-  </div>;
+  const handleSignIn = () => {
+    firebase
+      .auth()
+      .signInWithPopup(provider)
+      .then((res) => {
+        const { displayName, photoURL, email } = res.user;
+        const signInInfo = {
+          isSignedIn: true,
+          name: displayName,
+          email: email,
+          photo: photoURL,
+        };
+        setUser(signInInfo);
+        console.log(displayName, email, photoURL);
+      })
+      .catch((err) => {
+        console.log(err);
+        console.log(err.message);
+      });
+  };
+  const handleSignOut = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(() => {
+        const signOutInfo = {
+          isSignedIn: false,
+          name: "",
+          email: "",
+          photo: "",
+        };
+        setUser(signOutInfo);
+      })
+      .catch((err) => console.log(err));
+  };
+  return (
+    <div className="App">
+      {user.isSignedIn ? (
+        <button onClick={handleSignOut}>Sign Out</button>
+      ) : (
+        <button onClick={handleSignIn}>Sign In</button>
+      )}{" "}
+      {user.isSignedIn && (
+        <div>
+          <p>Welcome,{user.name}!</p>
+          <p>Your email is: {user.email}</p>
+          <img src={user.photo} alt="" />
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default App;
